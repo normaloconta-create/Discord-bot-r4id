@@ -15,7 +15,7 @@ def is_premium(user_id):
     return user_id in PREMIUM_USERS
 
 
-# ===================== ON READY =====================
+# ===================== READY =====================
 @bot.event
 async def on_ready():
     await bot.tree.sync()
@@ -37,24 +37,23 @@ async def say(interaction: discord.Interaction, mensagem: str):
             if i.user.id != self.user_id:
                 return await i.response.send_message("❌ Não é seu botão!", ephemeral=True)
 
-            # 🔥 TODO MUNDO VÊ
-            await i.channel.send(mensagem)
+            channel = i.channel or i.guild.get_channel(i.channel_id)
+            await channel.send(mensagem)
 
-            # 🔒 SÓ QUEM CLICOU VÊ
-            await i.response.send_message("✅ Mensagem enviada!", ephemeral=True)
+            await i.response.send_message("✅ Enviado!", ephemeral=True)
 
     await interaction.response.send_message(
-        "Clique no botão para enviar a mensagem:",
+        "Clique no botão para enviar:",
         view=SayView(interaction.user.id),
         ephemeral=True
     )
 
 
-# ===================== SPAM (PREMIUM) =====================
+# ===================== SPAM =====================
 @bot.tree.command(name="spam")
 async def spam(interaction: discord.Interaction, mensagem: str):
 
-    if not is_premium(interaction.user.id):
+    if interaction.user.id not in PREMIUM_USERS:
         return await interaction.response.send_message("🔒 Você não é premium!", ephemeral=True)
 
     class SpamView(discord.ui.View):
@@ -68,7 +67,9 @@ async def spam(interaction: discord.Interaction, mensagem: str):
             if i.user.id != self.user_id:
                 return await i.response.send_message("❌ Não é seu botão!", ephemeral=True)
 
-            await i.channel.send(mensagem)
+            channel = i.channel or i.guild.get_channel(i.channel_id)
+            await channel.send(mensagem)
+
             await i.response.send_message("✅ Enviado!", ephemeral=True)
 
     await interaction.response.send_message(
@@ -92,11 +93,12 @@ class VertexView(discord.ui.View):
         if premium and not is_premium(i.user.id):
             return await i.response.send_message("🔒 Você não é premium!", ephemeral=True)
 
-        await i.channel.send(msg)
+        channel = i.channel or i.guild.get_channel(i.channel_id)
+
+        await channel.send(msg)
         await i.response.send_message("✅ Enviado!", ephemeral=True)
 
 
-    # ================= RAID 1 =================
     @discord.ui.button(label="ℜ𝔞𝔦𝔡", style=discord.ButtonStyle.primary)
     async def raid1(self, i: discord.Interaction, button: discord.ui.Button):
 
@@ -104,7 +106,6 @@ class VertexView(discord.ui.View):
         await self.safe_send(i, msg)
 
 
-    # ================= RAID 2 =================
     @discord.ui.button(label="ℜ𝔞𝔦𝔡 2", style=discord.ButtonStyle.secondary)
     async def raid2(self, i: discord.Interaction, button: discord.ui.Button):
 
@@ -112,21 +113,20 @@ class VertexView(discord.ui.View):
         await self.safe_send(i, msg)
 
 
-    # ================= RAID 3 PREMIUM =================
     @discord.ui.button(label="🔒 ℜ𝔞𝔦𝔡 3", style=discord.ButtonStyle.success)
     async def raid3(self, i: discord.Interaction, button: discord.ui.Button):
 
-        msg = "⛓️ Mensagem premium do sistema"
+        msg = "⛓️ Mensagem premium"
         await self.safe_send(i, msg, premium=True)
 
 
-# ===================== VERTEX COMMAND =====================
+# ===================== VERTEX =====================
 @bot.tree.command(name="vertex")
 async def vertex(interaction: discord.Interaction):
 
     embed = discord.Embed(
         title="Menu",
-        description="Sistema de botões funcionando",
+        description="Bot funcionando corretamente",
         color=discord.Color.dark_red()
     )
 
@@ -137,7 +137,7 @@ async def vertex(interaction: discord.Interaction):
     )
 
 
-# ===================== ADD PREMIUM =====================
+# ===================== PREMIUM =====================
 @bot.tree.command(name="addprem")
 async def addprem(interaction: discord.Interaction, user: discord.Member):
 
@@ -150,7 +150,6 @@ async def addprem(interaction: discord.Interaction, user: discord.Member):
     await interaction.response.send_message(f"✅ {user.name} virou premium!")
 
 
-# ===================== REMOVE PREMIUM =====================
 @bot.tree.command(name="removeprem")
 async def removeprem(interaction: discord.Interaction, user: discord.Member):
 
@@ -160,7 +159,7 @@ async def removeprem(interaction: discord.Interaction, user: discord.Member):
     if user.id in PREMIUM_USERS:
         PREMIUM_USERS.remove(user.id)
 
-    await interaction.response.send_message(f"❌ {user.name} não é mais premium!")
+    await interaction.response.send_message(f"❌ {user.name} removido premium!")
 
 
 # ===================== RUN =====================
