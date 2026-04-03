@@ -20,79 +20,114 @@ async def on_ready():
     print(f"Logado como {bot.user}")
 
 
-# ===================== SELECT MENU =====================
-class VertexSelect(discord.ui.Select):
-    def __init__(self, user_id):
-        self.user_id = user_id
+# ===================== SAY =====================
+@bot.tree.command(name="say")
+async def say(interaction: discord.Interaction, mensagem: str):
 
-        options = [
-            discord.SelectOption(label="ℜ𝔞𝔦𝔡", description="Envia mensagem 5x"),
-            discord.SelectOption(label="ℜ𝔞𝔦𝔡 2", description="Mensagem diferente"),
-            discord.SelectOption(label="ℜ𝔞𝔦𝔡 3", description="VIP"),
-        ]
+    class SayView(discord.ui.View):
+        def __init__(self, user_id):
+            super().__init__(timeout=None)
+            self.user_id = user_id
 
-        super().__init__(
-            placeholder="Escolha uma opção...",
-            min_values=1,
-            max_values=1,
-            options=options
-        )
+        @discord.ui.button(label="📨 Send 1 time", style=discord.ButtonStyle.primary)
+        async def button(self, i: discord.Interaction, b: discord.ui.Button):
 
-    async def callback(self, interaction: discord.Interaction):
+            if i.user.id != self.user_id:
+                return await i.response.send_message("❌ Não é seu botão!", ephemeral=True)
 
-        # só você pode usar
-        if interaction.user.id != self.user_id:
-            return await interaction.response.send_message(
-                "❌ Você não pode usar esse painel!",
-                ephemeral=True
-            )
+            await i.response.defer()
+            await i.channel.send(mensagem)
 
-        choice = self.values[0]
+    await interaction.response.send_message(
+        "Clique no botão para enviar:",
+        view=SayView(interaction.user.id),
+        ephemeral=True
+    )
 
-        # ================= RAID 1 =================
-        if choice == "ℜ𝔞𝔦𝔡":
-            msg = """⛓️⛓️⛓️⛓️⛓️
-ADQUIRA A VERSÃO VIP EM https://discord.gg/5zs6tj7mbD
-⛓️⛓️⛓️⛓️⛓️"""
 
-            for _ in range(5):
-                await interaction.channel.send(msg)
+# ===================== SPAM (PREMIUM) =====================
+@bot.tree.command(name="spam")
+async def spam(interaction: discord.Interaction, mensagem: str):
 
-        # ================= RAID 2 =================
-        elif choice == "ℜ𝔞𝔦𝔡 2":
-            msg = """⛓️⛓️⛓️⛓️⛓️
-SUA MODERAÇÃO É UM LIXO
-VERTEX ACIMA DE TODOS
-⛓️⛓️⛓️⛓️⛓️"""
+    if not is_premium(interaction.user.id):
+        return await interaction.response.send_message("🔒 Você não é premium!", ephemeral=True)
 
-            for _ in range(5):
-                await interaction.channel.send(msg)
+    class SpamView(discord.ui.View):
+        def __init__(self, user_id):
+            super().__init__(timeout=None)
+            self.user_id = user_id
 
-        # ================= RAID 3 =================
-        elif choice == "ℜ𝔞𝔦𝔡 3":
+        @discord.ui.button(label="📨 Send 5 times", style=discord.ButtonStyle.danger)
+        async def button(self, i: discord.Interaction, b: discord.ui.Button):
 
-            if not is_premium(interaction.user.id):
-                return await interaction.response.send_message(
-                    "🔒 Você não é premium!",
-                    ephemeral=True
-                )
+            if i.user.id != self.user_id:
+                return await i.response.send_message("❌ Não é seu botão!", ephemeral=True)
 
-            msg = """⛓️⛓️⛓️⛓️⛓️
-||@everyone @here||
-https://media.discordapp.net/attachments/1488943346813763828/1489631468480368773/VID_20260403_102310.mp4
-⛓️⛓️⛓️⛓️⛓️"""
+            await i.response.defer()
 
             for _ in range(5):
-                await interaction.channel.send(msg)
+                await i.channel.send(mensagem)
 
-        await interaction.response.send_message("✅ Executado!", ephemeral=True)
+    await interaction.response.send_message(
+        "Clique no botão:",
+        view=SpamView(interaction.user.id),
+        ephemeral=True
+    )
 
 
-# ===================== VIEW =====================
+# ===================== VERTEX VIEW =====================
 class VertexView(discord.ui.View):
     def __init__(self, user_id):
         super().__init__(timeout=None)
-        self.add_item(VertexSelect(user_id))
+        self.user_id = user_id
+
+    async def send_msgs(self, i, msg, premium=False):
+
+        if i.user.id != self.user_id:
+            return await i.response.send_message("❌ Não é seu botão!", ephemeral=True)
+
+        if premium and not is_premium(i.user.id):
+            return await i.response.send_message("🔒 Você não é premium!", ephemeral=True)
+
+        await i.response.defer()
+
+        for _ in range(5):
+            await i.channel.send(msg)
+
+    # ================= RAID =================
+    @discord.ui.button(label="ℜ𝔞𝔦𝔡", style=discord.ButtonStyle.primary)
+    async def raid1(self, i: discord.Interaction, b: discord.ui.Button):
+
+        msg = """⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️
+ADQUIRA A VERSÃO VIP EM https://discord.gg/5zs6tj7mbD
+⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️"""
+
+        await self.send_msgs(i, msg)
+
+
+    # ================= RAID 2 =================
+    @discord.ui.button(label="ℜ𝔞𝔦𝔡 2", style=discord.ButtonStyle.secondary)
+    async def raid2(self, i: discord.Interaction, b: discord.ui.Button):
+
+        msg = """⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️
+
+SUA MODERAÇÃO É UM LIXO, VERTEX ACIMA DE TODOS
+
+⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️"""
+
+        await self.send_msgs(i, msg)
+
+
+    # ================= RAID 3 PREMIUM =================
+    @discord.ui.button(label="🔒 ℜ𝔞𝔦𝔡 3", style=discord.ButtonStyle.success)
+    async def raid3(self, i: discord.Interaction, b: discord.ui.Button):
+
+        msg = """⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️
+||@everyone @here||
+https://media.discordapp.net/attachments/1488943346813763828/1489631468480368773/VID_20260403_102310.mp4
+⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️"""
+
+        await self.send_msgs(i, msg, premium=True)
 
 
 # ===================== VERTEX COMMAND =====================
@@ -102,18 +137,17 @@ async def vertex(interaction: discord.Interaction):
     embed = discord.Embed(
         title="ℜ𝔞𝔦𝔡",
         description="""
-ℜ𝔞𝔦𝔡 → envia mensagem 5x
-ℜ𝔞𝔦𝔡 2 → mensagem diferente
-ℜ𝔞𝔦𝔡 3 → VIP
+ℜ𝔞𝔦𝔡 → envia uma mensagem 5x  
+ℜ𝔞𝔦𝔡 2 → envia uma mensagem 5x  
+🔒 ℜ𝔞𝔦𝔡 3 → premium  
 """,
         color=discord.Color.dark_red()
     )
 
-    # 🔒 só você vê o painel
     await interaction.response.send_message(
         embed=embed,
         view=VertexView(interaction.user.id),
-        ephemeral=True
+        ephemeral=False
     )
 
 
