@@ -8,6 +8,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 OWNER_ID = 1487986397074952406
 PREMIUM_USERS = []
 
+
 def is_premium(user_id):
     return user_id in PREMIUM_USERS
 
@@ -23,16 +24,24 @@ async def on_ready():
 async def say(interaction: discord.Interaction, mensagem: str):
 
     class SayView(discord.ui.View):
+        def __init__(self, author_id):
+            super().__init__(timeout=None)
+            self.author_id = author_id
+
         @discord.ui.button(label="📨 Send 1 time", style=discord.ButtonStyle.primary)
         async def button(self, i: discord.Interaction, b: discord.ui.Button):
 
-            if i.user.id != interaction.user.id:
+            if i.user.id != self.author_id:
                 return await i.response.send_message("❌ Não é seu botão!", ephemeral=True)
 
-            await i.response.defer()
-            await interaction.channel.send(mensagem)
+            await i.response.send_message("✅ Mensagem enviada!", ephemeral=True)
+            await i.channel.send(mensagem)
 
-    await interaction.response.send_message("Clique no botão:", view=SayView(), ephemeral=True)
+    await interaction.response.send_message(
+        "Clique no botão:",
+        view=SayView(interaction.user.id),
+        ephemeral=True
+    )
 
 
 # ===================== /spam =====================
@@ -43,18 +52,26 @@ async def spam(interaction: discord.Interaction, mensagem: str):
         return await interaction.response.send_message("❌ Você não é premium!", ephemeral=True)
 
     class SpamView(discord.ui.View):
+        def __init__(self, author_id):
+            super().__init__(timeout=None)
+            self.author_id = author_id
+
         @discord.ui.button(label="📨 Send 5 times", style=discord.ButtonStyle.red)
         async def button(self, i: discord.Interaction, b: discord.ui.Button):
 
-            if i.user.id != interaction.user.id:
+            if i.user.id != self.author_id:
                 return await i.response.send_message("❌ Não é seu botão!", ephemeral=True)
 
-            await i.response.defer()
+            await i.response.send_message("✅ Enviando...", ephemeral=True)
 
             for _ in range(5):
-                await interaction.channel.send(mensagem)
+                await i.channel.send(mensagem)
 
-    await interaction.response.send_message("Clique no botão:", view=SpamView(), ephemeral=True)
+    await interaction.response.send_message(
+        "Clique no botão:",
+        view=SpamView(interaction.user.id),
+        ephemeral=True
+    )
 
 
 # ===================== /raid =====================
@@ -66,18 +83,26 @@ ADQUIRA A VERSAO VIP
 https://discord.gg/5zs6tj7mbD"""
 
     class RaidView(discord.ui.View):
+        def __init__(self, author_id):
+            super().__init__(timeout=None)
+            self.author_id = author_id
+
         @discord.ui.button(label="📨 Send 5 times", style=discord.ButtonStyle.red)
         async def button(self, i: discord.Interaction, b: discord.ui.Button):
 
-            if i.user.id != interaction.user.id:
+            if i.user.id != self.author_id:
                 return await i.response.send_message("❌ Não é seu botão!", ephemeral=True)
 
-            await i.response.defer()
+            await i.response.send_message("⚡ Enviando...", ephemeral=True)
 
             for _ in range(5):
-                await interaction.channel.send(msg)
+                await i.channel.send(msg)
 
-    await interaction.response.send_message("Clique no botão:", view=RaidView(), ephemeral=True)
+    await interaction.response.send_message(
+        "Clique no botão:",
+        view=RaidView(interaction.user.id),
+        ephemeral=True
+    )
 
 
 # ===================== /addprem =====================
