@@ -3,6 +3,8 @@ from discord.ext import commands
 import os
 
 intents = discord.Intents.default()
+intents.message_content = True
+
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 OWNER_ID = 1487986397074952406
@@ -29,17 +31,20 @@ async def say(interaction: discord.Interaction, mensagem: str):
             super().__init__(timeout=None)
             self.user_id = user_id
 
-        @discord.ui.button(label="📨 Send 1 time", style=discord.ButtonStyle.primary)
-        async def button(self, i: discord.Interaction, b: discord.ui.Button):
+        @discord.ui.button(label="📨 Send", style=discord.ButtonStyle.primary)
+        async def button(self, i: discord.Interaction, button: discord.ui.Button):
 
             if i.user.id != self.user_id:
                 return await i.response.send_message("❌ Não é seu botão!", ephemeral=True)
 
-            await i.response.defer()
+            # 🔥 TODO MUNDO VÊ
             await i.channel.send(mensagem)
 
+            # 🔒 SÓ QUEM CLICOU VÊ
+            await i.response.send_message("✅ Mensagem enviada!", ephemeral=True)
+
     await interaction.response.send_message(
-        "Clique no botão para enviar:",
+        "Clique no botão para enviar a mensagem:",
         view=SayView(interaction.user.id),
         ephemeral=True
     )
@@ -57,16 +62,14 @@ async def spam(interaction: discord.Interaction, mensagem: str):
             super().__init__(timeout=None)
             self.user_id = user_id
 
-        @discord.ui.button(label="📨 Send 5 times", style=discord.ButtonStyle.danger)
-        async def button(self, i: discord.Interaction, b: discord.ui.Button):
+        @discord.ui.button(label="📨 Send", style=discord.ButtonStyle.danger)
+        async def button(self, i: discord.Interaction, button: discord.ui.Button):
 
             if i.user.id != self.user_id:
                 return await i.response.send_message("❌ Não é seu botão!", ephemeral=True)
 
-            await i.response.defer()
-
-            for _ in range(5):
-                await i.channel.send(mensagem)
+            await i.channel.send(mensagem)
+            await i.response.send_message("✅ Enviado!", ephemeral=True)
 
     await interaction.response.send_message(
         "Clique no botão:",
@@ -81,7 +84,7 @@ class VertexView(discord.ui.View):
         super().__init__(timeout=None)
         self.user_id = user_id
 
-    async def send_msgs(self, i, msg, premium=False):
+    async def safe_send(self, i, msg, premium=False):
 
         if i.user.id != self.user_id:
             return await i.response.send_message("❌ Não é seu botão!", ephemeral=True)
@@ -89,45 +92,32 @@ class VertexView(discord.ui.View):
         if premium and not is_premium(i.user.id):
             return await i.response.send_message("🔒 Você não é premium!", ephemeral=True)
 
-        await i.response.defer()
+        await i.channel.send(msg)
+        await i.response.send_message("✅ Enviado!", ephemeral=True)
 
-        for _ in range(5):
-            await i.channel.send(msg)
 
-    # ================= RAID =================
+    # ================= RAID 1 =================
     @discord.ui.button(label="ℜ𝔞𝔦𝔡", style=discord.ButtonStyle.primary)
-    async def raid1(self, i: discord.Interaction, b: discord.ui.Button):
+    async def raid1(self, i: discord.Interaction, button: discord.ui.Button):
 
-        msg = """⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️
-ADQUIRA A VERSÃO VIP EM https://discord.gg/5zs6tj7mbD
-⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️"""
-
-        await self.send_msgs(i, msg)
+        msg = "⛓️ Mensagem do sistema 1"
+        await self.safe_send(i, msg)
 
 
     # ================= RAID 2 =================
     @discord.ui.button(label="ℜ𝔞𝔦𝔡 2", style=discord.ButtonStyle.secondary)
-    async def raid2(self, i: discord.Interaction, b: discord.ui.Button):
+    async def raid2(self, i: discord.Interaction, button: discord.ui.Button):
 
-        msg = """⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️
-
-SUA MODERAÇÃO É UM LIXO, VERTEX ACIMA DE TODOS
-
-⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️"""
-
-        await self.send_msgs(i, msg)
+        msg = "⛓️ Mensagem do sistema 2"
+        await self.safe_send(i, msg)
 
 
     # ================= RAID 3 PREMIUM =================
     @discord.ui.button(label="🔒 ℜ𝔞𝔦𝔡 3", style=discord.ButtonStyle.success)
-    async def raid3(self, i: discord.Interaction, b: discord.ui.Button):
+    async def raid3(self, i: discord.Interaction, button: discord.ui.Button):
 
-        msg = """⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️
-||@everyone @here||
-https://media.discordapp.net/attachments/1488943346813763828/1489631468480368773/VID_20260403_102310.mp4
-⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️⛓️"""
-
-        await self.send_msgs(i, msg, premium=True)
+        msg = "⛓️ Mensagem premium do sistema"
+        await self.safe_send(i, msg, premium=True)
 
 
 # ===================== VERTEX COMMAND =====================
@@ -135,12 +125,8 @@ https://media.discordapp.net/attachments/1488943346813763828/1489631468480368773
 async def vertex(interaction: discord.Interaction):
 
     embed = discord.Embed(
-        title="ℜ𝔞𝔦𝔡",
-        description="""
-ℜ𝔞𝔦𝔡 → envia uma mensagem 5x  
-ℜ𝔞𝔦𝔡 2 → envia uma mensagem 5x  
-🔒 ℜ𝔞𝔦𝔡 3 → premium  
-""",
+        title="Menu",
+        description="Sistema de botões funcionando",
         color=discord.Color.dark_red()
     )
 
@@ -151,7 +137,7 @@ async def vertex(interaction: discord.Interaction):
     )
 
 
-# ===================== ADDPREM =====================
+# ===================== ADD PREMIUM =====================
 @bot.tree.command(name="addprem")
 async def addprem(interaction: discord.Interaction, user: discord.Member):
 
@@ -164,7 +150,7 @@ async def addprem(interaction: discord.Interaction, user: discord.Member):
     await interaction.response.send_message(f"✅ {user.name} virou premium!")
 
 
-# ===================== REMOVEPREM =====================
+# ===================== REMOVE PREMIUM =====================
 @bot.tree.command(name="removeprem")
 async def removeprem(interaction: discord.Interaction, user: discord.Member):
 
